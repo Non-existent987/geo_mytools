@@ -1,0 +1,5 @@
+创建setup.py文件 里面name=mytools
+创建文件夹：mytools  存放代码
+python setup.py build
+python setup.py sdist
+python setup.py bdist_wheel
