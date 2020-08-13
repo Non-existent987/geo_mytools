@@ -409,7 +409,7 @@ class MyTools_gis(object):
                 else:
                     res_use_ok.loc[res_use_ok[df_merge_coverage_columns[0]].isna(),df_merge_coverage_columns[0]]=merge_only_right_mark
                     if '规划图层' in coverage:
-                        res_use_ok[df_merge_coverage_columns[0]] = res_use_ok[df_merge_coverage_columns[0]].replace({'3A景区':'农村','4A景区':'农村','5A景区':'农村','景区':'农村','热点':'农村'})
+                        res_use_ok[df_merge_coverage_columns[0]] = res_use_ok[df_merge_coverage_columns[0]].replace({'3A景区':'农村','4A景区':'农村','5A景区':'农村','景区':'农村','热点':'乡镇'})
                 res_use_ok_df = res_use_ok.drop_duplicates('index').drop(columns='index')
                 return res_use_ok_df
         elif isinstance(coverage,gpd.GeoDataFrame):
@@ -435,7 +435,7 @@ class MyTools_gis(object):
                     res_use_ok.loc[res_use_ok[df_merge_coverage_columns[0]].isna(),df_merge_coverage_columns[0]]=merge_only_right_mark
                 res_use_ok_df = res_use_ok.drop_duplicates('index').drop(columns='index')
                 if '区域类型' in list(guihua.columns):
-                        res_use_ok_df['区域类型'] = res_use_ok_df['区域类型'].replace({'3A景区':'农村','4A景区':'农村','5A景区':'农村','景区':'农村','热点':'农村'})
+                        res_use_ok_df['区域类型'] = res_use_ok_df['区域类型'].replace({'3A景区':'农村','4A景区':'农村','5A景区':'农村','景区':'农村','热点':'乡镇'})
                 return res_use_ok_df
 
     def nearest_site(self,data,
