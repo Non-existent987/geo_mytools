@@ -290,7 +290,75 @@ class MyTools_gis(object):
         df[pnt_col] = [Point(x) for x in zip(df[lon], df[lat])]
         df = gpd.GeoDataFrame(df, crs={"init": "epsg:4326"}, geometry='geometry') 
         return df
+    def min_site_two(self,data,data2,
+                 lon='lon',lat='lat',lon2='lon2',lat2='lat2',
+                 num_min_results = 3):
+        '''min_site_two方法用于：
+        1、查询一批位置点的最近的一个站点（在另一个表中），以及它的距离。
+        2、查询一批位置点的最近的n个点（在另一个表中），以及它们的平均距离。（相当于平均站间距）
+        data：一个数据表格
+        data2:另一个数据表
+        lon，lat,lon2,lat2：经纬度的字段两个表的。
+        num_min_results：如果查询最近的一个站点则设置为1，如果查询多个最近站点并求平均数设置>1
+        例子：
+        min_site_two(data1,data2,'lon','lat','lon','lat',3)
+        '''
+        if lon == lon2:
+            data2 = data2.rename(columns={lon2:lon2+'_right'})
+            lon2 = lon2+'_right'
+        if lat == lat2:
+            data2 = data2.rename(columns={lat2:lat2+'_right'})
+            lat2 = lat2+'_right'
+        if isinstance(num_min_results,str) | isinstance(num_min_results,float):
+            print('错误：输入的num_min_results不能为字符或者小数，请输入大于0的整数')
+            assert 0
+        elif num_min_results<1:
+            print('错误：输入的num_min_results不合理，请输入大于0的整数')
+            assert 0
 
+        data_use = data.copy()
+        data_use['geometry'] = [Point(x) for x in zip(data_use[lon], data_use[lat])]
+        data_zhan_pot = gpd.GeoDataFrame(data_use, crs={"init": "epsg:4326"}, geometry='geometry')
+    #     data_zhan_pot = data_zhan_pot.reset_index(drop=True).reset_index()
+        
+        data2 = data2.reset_index(drop=True).reset_index()
+        data_zhan_pot_name = data2[['index',lon2,lat2]]
+        data2['geometry'] = [Point(x) for x in zip(data2[lon2], data2[lat2])]
+        data2_pot = gpd.GeoDataFrame(data2, crs={"init": "epsg:4326"}, geometry='geometry')
+        data_sindex = data2_pot.sindex
+
+        if num_min_results==1:
+            data_zhan_pot['minimum_index'] = data_zhan_pot['geometry'].apply(
+                lambda x: list(data_sindex.nearest(x.bounds,num_results=1))[0])
+            data_zhan_pot = data_zhan_pot.drop(['geometry'],axis=1)
+            df = data_zhan_pot.merge(
+                data_zhan_pot_name,how = 'left',left_on = 'minimum_index',right_on='index',suffixes=('','_y'))
+            lon1, lat1, lon22, lat22 = map(np.radians, [df[lon], df[lat], df[lon2], df[lat2]])
+            dis_t = np.sin((lat22 - lat1)/2)**2 + np.cos(lat1)*np.cos(lat22)*np.sin((lon22 - lon1)/2)**2
+            df['distance']= 2*np.arcsin(np.sqrt(dis_t))*6371*1000
+            res = df.drop(['index_y'],axis=1)
+        elif num_min_results>1:
+            three_minimum_point= data_zhan_pot['geometry'].apply(
+                lambda x: list(data_sindex.nearest(x.bounds,num_results=num_min_results))[0:num_min_results])
+            data_zhan_pot = data_zhan_pot.drop(['geometry'],axis=1)
+            three_minimum_point_df = pd.DataFrame(
+                [x for x in three_minimum_point],columns = 
+                [ 'minimum_index_'+str(y+1) for y,z in enumerate(three_minimum_point[0])])
+            data_zhan_pot_minimum3 = pd.concat([data_zhan_pot,three_minimum_point_df],axis=1)
+            distance_dict = dict()
+
+            for columns_index , name in enumerate(three_minimum_point_df.columns):
+                df = data_zhan_pot_minimum3.merge(
+                    data2,how='left',left_on = name,right_on = 'index',suffixes=('','_y'))
+                lon1, lat1, lon22, lat22 = map(np.radians, [df[lon], df[lat], df[lon2], df[lat2]])
+                dis_t = np.sin((lat22 - lat1)/2)**2 + np.cos(lat1)*np.cos(lat22)*np.sin((lon22 - lon1)/2)**2
+                name_data= 2*np.arcsin(np.sqrt(dis_t))*6371*1000
+                distance_dict['distance_'+str(columns_index+1)] = name_data
+            distance_dict_df = pd.DataFrame(distance_dict)
+            distance_dict_df['mean'] = distance_dict_df.mean(axis=1)
+            res = pd.concat([data_zhan_pot_minimum3,distance_dict_df],axis=1)
+        res.reset_index(drop=True,inplace=True)
+        return res
     def nearest_site_one(self,data,
                  id_name_column='id',
                  lon='lon',
@@ -338,13 +406,8 @@ class MyTools_gis(object):
         df['distance']= 2*np.arcsin(np.sqrt(dis_t))*6371*1000
         res = df.drop(['index_y'],axis=1)
         return res
-	
-	
-    def min_one(self,
-				data_x,
-				data_y,
-				lon_x='经度',lat_x='纬度',
-				lon_y='经度y',lat_y='纬度y'):
+
+    def min_one(self,data_x,data_y,lon_x='经度',lat_x='纬度',lon_y='经度y',lat_y='纬度y',num=1):
         '''
         求距离A数据(df格式)中每一条数据最近的一个数据（来自B数据）
         其中两组数据的经纬度不要一样
@@ -355,7 +418,7 @@ class MyTools_gis(object):
         lon_x：lat_x：data_x表中的经纬度列名
         lon_y：lat_y：data_y表中的经纬度列名
         '''
-		#生成点gdf
+        #生成点gdf
         data_x_p = self.add_points(data_x,lon_x,lat_x)
         data_y_p = self.add_points(data_y,lon_y,lat_y)
         
@@ -365,7 +428,6 @@ class MyTools_gis(object):
         data_x_p = data_x_p.drop(columns='geometry')
         data_y_p = data_y_p.drop(columns='geometry')
         res = data_x_p.merge(data_y_p,how='left',left_on='minimum_index',right_index = True)
-		
         #添加距离
         res1 = self.distancea_df(res,lon_x,lat_x,lon_y,lat_y)
         return res1
@@ -533,6 +595,16 @@ class MyTools_gis(object):
         a = np.sin((lat2 - lat1)/2)**2 + np.cos(lat1)*np.cos(lat2)*np.sin((lon2 - lon1)/2)**2
         df[columns_name] = 2*np.arcsin(np.sqrt(a))*6371*1000
         return df
+    def distancea_str(self,
+                        lon_1, 
+                        lat_1, 
+                        lon_2, 
+                        lat_2
+                        ):
+        lon1, lat1, lon2, lat2 = map(np.radians, [lon_1,lat_1,lon_2,lat_2])
+        a = np.sin((lat2 - lat1)/2)**2 + np.cos(lat1)*np.cos(lat2)*np.sin((lon2 - lon1)/2)**2
+        res = 2*np.arcsin(np.sqrt(a))*6371*1000
+        return res
 
     def add_area(self,
                     gdf,

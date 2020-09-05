@@ -156,7 +156,8 @@ class MyTools_word(object):
                 bold=True,
                 lie_k = False,
                 lie_k_lie=[10,4],
-                zishiying=True
+                zishiying=True,
+                int_0=False
                 ):
         '''
         document = Document()
@@ -245,9 +246,12 @@ class MyTools_word(object):
             row_cells = table.rows[row].cells
             for num in range(0, data.shape[1]):
                 #添加内容并修改样式
-                try:
-                    data_cell_str = str(int(data.iloc[row-1,num]))
-                except:
+                if int_0:
+                    try:
+                        data_cell_str = str(int(data.iloc[row-1,num]))
+                    except:
+                        data_cell_str = str(data.iloc[row-1,num])
+                else:
                     data_cell_str = str(data.iloc[row-1,num])
 
                 run2=table.cell(row,num).paragraphs[0].add_run(u'' + data_cell_str)

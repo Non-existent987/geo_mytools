@@ -1,6 +1,7 @@
 import os,sys,pickle
 import tkinter as tk
 from tkinter import filedialog
+import numpy as np
 class MyTools_other(object):
     # def __init__(self):
         # print('other类的初始化执行了',os.getcwd())
@@ -24,7 +25,6 @@ class MyTools_other(object):
         f = open(path, 'rb')
         b = pickle.load(f)
         return b
-
     def df_sort(self,
                 df,
                 columns=['',''],
@@ -44,7 +44,7 @@ class MyTools_other(object):
         df_head_sort = df_head.sort_values(sort_columns,ascending=ascending)
         df_head_foot = df_head_sort.append(df.iloc[-1])
         for xx in columns:
-            df_head_foot[xx] = df_head_foot[xx].apply(lambda x: format(x, '.{}%'.format(weishu)))#转成百分比
+            df_head_foot[xx] = df_head_foot[xx].apply(lambda x: format(x, '.{}%'.format(weishu)) if (str(x) !='nan' or x =='') else np.nan)#转成百分比
         return df_head_foot
     def df_yield(self,
                     df,
