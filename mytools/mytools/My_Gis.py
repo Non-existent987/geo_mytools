@@ -113,7 +113,7 @@ class MyTools_gis(object):
                         lat='CellLatitude',
                         buff_col='距离',
                         geometry='geometry'
-                        ):    
+                        ):
         df[geometry]=df[[lon,lat]].apply(lambda x:Point((x[0],x[1])),axis=1)
         df=gpd.GeoDataFrame(df,crs={'init': 'epsg:4326'},geometry=geometry)
         df=df.to_crs('+proj=utm +zone=50 +ellps=WGS84 +datum=WGS84 +units=m +no_defs')
@@ -135,7 +135,7 @@ class MyTools_gis(object):
             try:
                 F900 = {0:'300',1:'430',2:'430',3:'400',4:'1200',5:'2200'}
                 TDD = {0:'250',1:'400',2:'400',3:'350',4:'800',5:'1000'}
-                df['distance']= [F900[cj] if pd == 'FDD900' else TDD[cj] 
+                df['distance']= [F900[cj] if pd == 'FDD900' else TDD[cj]
                          for cj , pd in zip(df[changjing],df[zhishi])]
             except:
                 try:
@@ -273,8 +273,14 @@ class MyTools_gis(object):
             city_tu = gpd.read_file('{g}:/1-规划/图层/武汉分公司图层20190109/武汉市区分公司区域图层201804版/武汉市区分公司区域图层201804版/武汉市区分公司区域图层201804版.TAB'.format(g=cd),encoding = 'gbk')
             city_tu = city_tu.to_crs({'init': 'epsg:4326'})
         elif (name=='场景') or (name=='changjing'):
-            coverage='{g}:/1-规划/图层/全省区域规划图层20180510/全省区域规划图层20180510/全省区域规划图层20180510.TAB'.format(g=cd)
+            coverage='{g}:/1-规划/图层/全省区域规划图层20200110/全省区域规划图层20200110.TAB'.format(g=cd)
             city_tu = gpd.read_file(coverage,encoding = 'gbk')
+        elif (name=='atu') or (name=='核心城区') or (name == '城区'):
+            coverage='{g}:/1-规划/图层/ATU测试区域/ATU网格总.TAB'.format(g=cd)
+            city_tu = gpd.read_file(coverage,encoding = 'gbk')
+            city_tu['type'] = city_tu.type
+            city_tu = city_tu.loc[tu['type']=='Polygon']
+            city_tu['场景'] = 'atu'
         else:
             city_tu='名字错误：目前支持的有(湖北地市,湖北区县,武汉,场景))'
         return city_tu

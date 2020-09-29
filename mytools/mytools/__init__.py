@@ -17,7 +17,7 @@ def wav_file():
     tmp = open("{}/tmp.wav".format(__path__[0]),"wb+")  
     tmp.write(base64.b64decode(dog))#写入到临时文件中
     tmp.close()
-def sound():
+def dog():
     winsound.PlaySound("{}/tmp.wav".format(__path__[0]), winsound.SND_FILENAME)
 if not os.path.exists("{}/tmp.wav".format(__path__[0])):
     wav_file()
