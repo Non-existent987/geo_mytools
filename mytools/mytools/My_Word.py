@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 from docx import Document
 from docx.shared import RGBColor
 from docx.shared import Pt
@@ -46,6 +49,7 @@ class MyTools_word(object):
         w.add_df(document,cmcc_res,'g',lists=[((1,1),(3,2)),((4,2),(6,3))])
         document.save('demo.docx')
         '''
+
         biaoti = document.add_heading('',jibie)
         if duiqi == 'c':
             biaoti.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -92,6 +96,7 @@ class MyTools_word(object):
         w.add_df(document,cmcc_res,'g',lists=[((1,1),(3,2)),((4,2),(6,3))])
         document.save('demo.docx')
         '''
+        
         run1 = p.add_run(wenzi)  # 使用add_run添加文字
         run1.font.size = Pt(size) #字体大小设置，和word里面的字号相对应，小一
         if bold:
@@ -137,6 +142,7 @@ class MyTools_word(object):
         w.add_df(document,cmcc_res,'g',lists=[((1,1),(3,2)),((4,2),(6,3))])
         document.save('demo.docx')
         '''
+        
         p = document.add_paragraph('')
         run1 = p.add_run(wenzi)  # 使用add_run添加文字
         run1.font.size = Pt(size) #字体大小设置，和word里面的字号相对应，小一
@@ -184,6 +190,7 @@ class MyTools_word(object):
         w.add_df(document,cmcc_res,'g',lists=[((1,1),(3,2)),((4,2),(6,3))])
         document.save('demo.docx')
         '''
+        
         #插入表格并赋值
         data = df.copy()
         document.styles['Table Grid'].font.name = u'微软雅黑'
@@ -270,4 +277,4 @@ class MyTools_word(object):
         # table.style.font.bold=True
         table.style.font.color.rgb=RGBColor(0, 0, 0)
         table.style.paragraph_format.alignment=WD_PARAGRAPH_ALIGNMENT.CENTER
-a = MyTools_word()
+# a = MyTools_word()

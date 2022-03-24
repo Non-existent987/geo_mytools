@@ -1,11 +1,85 @@
+#!/usr/bin/env python
+# coding: utf-8
 import os,sys,pickle
-import tkinter as tk
-from tkinter import filedialog
+# import tkinter as tk
+# from tkinter import filedialog
 import numpy as np
+import pandas as pd
+'''
+pandas的一些技巧
+import json
+将字符串列表转换成列表
+from ast import literal_eval
+literal_eval（list）
+'''
 class MyTools_other(object):
     # def __init__(self):
         # print('other类的初始化执行了',os.getcwd())
     '''git——改名字'''
+
+    def row_columns(self,data_A,columns1='',columns2='',split_s='/'):
+        data_B = data_A.groupby(columns1).first().reset_index().drop(columns2,axis=1).merge(data_A.groupby(by = columns1).apply(lambda g:g[columns2].str.cat(sep=split_s)).rename(columns2).reset_index(),on=columns1).reindex(columns=list(data_A.columns))
+        return data_B
+    def eci_to_cgi(self,df,cellid_columns='cellid',cgi_columns='cgi'):
+        '''
+           将cellid转换成CGI
+            df::dataframe
+            cellid_columns::df中cellid列名
+            cgi_columns::在df中准备添加的cgi的列名
+        '''    
+        df[cgi_columns] = '460-00-' + (df[cellid_columns]//256).astype(str) + '-' + (df[cellid_columns]%256).astype(str)
+        return df
+
+    def new_folder(self,folder='d:/new/'):
+        '''
+            创建一个文件夹
+            如果文件夹存在则不执行新建操作，打印提示语句’文件夹已经存在‘
+            folder::文件夹路径，完整路径。不要用相对路径。
+        '''
+        if not os.path.exists(folder):#如果路径不存在
+            os.makedirs(folder)
+        else:
+            print(folder,'文件夹已经存在')
+
+    def read_table(self,name='c:/data.csv'):
+        if name.split('.')[-1].lower() == 'csv':
+            try:
+                encoding_m , sep_m , in_str = self.my_read(name)
+                data_ttt = pd.read_csv(name,encoding=encoding_m,sep=sep_m)
+            except:
+                data_ttt = pd.read_csv(open(file))  # pandas
+        elif name.split('.')[-1].lower() in 'xlsx':
+            try:
+                data_ttt = pd.read_excel(name, encoding='gbk')
+            except:
+                data_ttt = pd.read_excel(name, encoding="utf-8", )
+        return data_ttt
+
+    #处理亿阳格式不固定的函数
+    def my_read(self,file='d:/table.csv',in_str='\''):
+        str_sep_s=False
+        try:
+            data = pd.read_csv(file,nrows=4,encoding='utf-8')
+            utf='utf-8'
+            data = pd.read_csv(file,nrows=4,encoding='utf-8',sep=',')
+            sep_s = ','
+            if data.shape[1]<4:
+                data = pd.read_csv(file,nrows=4,encoding='utf-8',sep='\t')
+                sep_s = '\t'
+        except Exception as e:
+            if 'utf' in str(e):
+                utf='gbk'
+                data = pd.read_csv(file,nrows=4,encoding='gbk',sep=',')
+                sep_s = ','
+                if data.shape[1]<4:
+                    data = pd.read_csv(file,nrows=4,encoding='gbk',sep='\t')
+                    sep_s = '\t'
+        if in_str in str(data.iloc[0,0]):
+            print('表的两边有引号需要剔除')
+            str_sep_s = True
+        else:
+            pass
+        return (utf,sep_s,str_sep_s)
 
     def str_is_chinese(self,check_str):
         """
@@ -25,6 +99,7 @@ class MyTools_other(object):
         f = open(path, 'rb')
         b = pickle.load(f)
         return b
+        
     def df_sort(self,
                 df,
                 columns=['',''],
@@ -46,6 +121,7 @@ class MyTools_other(object):
         for xx in columns:
             df_head_foot[xx] = df_head_foot[xx].apply(lambda x: format(x, '.{}%'.format(weishu)) if (str(x) !='nan' or x =='') else np.nan)#转成百分比
         return df_head_foot
+        
     def df_yield(self,
                     df,
                     number=1000,
@@ -156,17 +232,17 @@ class MyTools_other(object):
         path = easygui.fileopenbox()
         return path
     
-    def get_file_one_tk(self):
-        root = tk.Tk()
-        root.withdraw()
-        file_path = filedialog.askopenfilename()
-        return file_path
+    # def get_file_one_tk(self):
+    #     root = tk.Tk()
+    #     root.withdraw()
+    #     file_path = filedialog.askopenfilename()
+    #     return file_path
 
-    def get_file_more_tk(self):
-        root = tk.Tk()
-        root.withdraw()
-        file_path = filedialog.askopenfilenames()
-        return file_path
+    # def get_file_more_tk(self):
+    #     root = tk.Tk()
+    #     root.withdraw()
+    #     file_path = filedialog.askopenfilenames()
+    #     return file_path
 
     def get_file_name(self,path=r'D:/UP/'):
         pant_split=path

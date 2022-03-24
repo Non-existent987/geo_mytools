@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 import math
 import pandas as pd
 class LogLatTransfer(): 
@@ -148,7 +151,7 @@ class LogLatTransfer():
         lat = y / 20037508.34 * 180
         lat = 180 / self.pi * (2 * math.atan(math.exp(lat * self.pi / 180)) - self.pi / 2)
         return lng, lat
-    def lonlat_Transformation(self,data,lon='经度',lat='纬度',f='b_w'):
+    def BD09_WGS84_df(self,data,lon='经度',lat='纬度',f='b_w'):
         if f == 'b_w':
             data = data.reset_index()
             a = [self.BD09_to_WGS84(lon,lat) for lon,lat in zip(data[lon],data[lat])]
@@ -158,6 +161,19 @@ class LogLatTransfer():
             data = data.reset_index()
             a = [self.WGS84_to_BD09(lon,lat) for lon,lat in zip(data[lon],data[lat])]
             data = pd.concat([data,pd.DataFrame(a,columns=['bd_lon','bd_lat'])],axis=1)
+            return data.set_index('index')
+        else:
+            print('错误')
+    def GCJ02_WGS84_df(self,data,lon='经度',lat='纬度',f='g_w'):
+        if f == 'g_w':
+            data = data.reset_index()
+            a = [self.GCJ02_to_WGS84(lon,lat) for lon,lat in zip(data[lon],data[lat])]
+            data = pd.concat([data,pd.DataFrame(a,columns=['w84_lon','w84_lat'])],axis=1)
+            return data.set_index('index')
+        elif f =='w_g':
+            data = data.reset_index()
+            a = [self.WGS84_to_GCJ02(lon,lat) for lon,lat in zip(data[lon],data[lat])]
+            data = pd.concat([data,pd.DataFrame(a,columns=['gcjo2_lon','gcjo2_lat'])],axis=1)
             return data.set_index('index')
         else:
             print('错误')

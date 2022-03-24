@@ -1,0 +1,5 @@
+geopandas
+geographiclib
+kml2geojson
+pyshp
+python-docx
